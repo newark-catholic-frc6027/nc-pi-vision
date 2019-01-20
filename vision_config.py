@@ -49,11 +49,7 @@ class VisionConfig:
 
 
     """Report parse error."""
-<<<<<<< HEAD
     def __parseError(self, str):
-=======
-    def __parseError(str):
->>>>>>> f8bdebcc3c469f4736d3cc9fc52993dea49bd14e
         print("config error in '" + self.configFile + "': " + str, file=sys.stderr)
 
     """Read single camera configuration."""
