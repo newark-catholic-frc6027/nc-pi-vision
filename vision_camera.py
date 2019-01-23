@@ -47,16 +47,6 @@ class VisionCamera:
         self.camera = UsbCamera(self.cameraConfig.name, self.cameraConfig.path)
         server = self.cameraServer.startAutomaticCapture(camera=self.camera, return_server=True)
 
-        '''
-        cv_sink = inst.getVideo(camera=camera)
-        fooArray = None
-        frametime, fooArray = cv_sink.grabFrame(fooArray, 0.5)
-        print("frametime = %s" % frametime)
-        print("error = %s" % cv_sink.getError())
-        if frametime != 0:
-            cv2.imwrite("foo.jpg", fooArray)
-
-        '''
         self.camera.setConfigJson(json.dumps(self.cameraConfig.config))
         self.camera.setConnectionStrategy(VideoSource.ConnectionStrategy.kKeepOpen)
 

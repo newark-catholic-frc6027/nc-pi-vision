@@ -1,3 +1,5 @@
+import cv2
+
 class VisionProcessor:
 
     def __init__(self, frameReadTimeout=0.25):
@@ -20,4 +22,7 @@ class VisionProcessor:
         return frame
 
     def processFrame(self, frame):
+        # TODO, run grip pipeline
+
+        cv2.drawMarker(frame, (160, 120), (0, 0, 255))
         return frame
