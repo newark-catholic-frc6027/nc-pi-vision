@@ -3,10 +3,10 @@ import time
 import sys
 
 from vision_camera import VisionCamera
-from networktables import NetworkTablesInstance
 from vision_config import VisionConfig
 from vision_processor import VisionProcessor
 from vision_output_server import VisionOutputServer
+from vision_data_exchanger import VisionDataExchanger
 
 MAIN_VISION_CAMERA_INDEX = 0
 
@@ -29,14 +29,9 @@ if __name__ == "__main__":
         print("Failed to load configuration file '%s'" % visionConfig.configFile)
         sys.exit(1)
 
-    # start NetworkTables
-    ntinst = NetworkTablesInstance.getDefault()
-    if visionConfig.server:
-        print("Setting up NetworkTables server")
-        ntinst.startServer()
-    else:
-        print("Setting up NetworkTables client for team {}".format(visionConfig.team))
-        ntinst.startClientTeam(visionConfig.team)
+    # For ouputting info to Network tables
+    dataEx = VisionDataExchanger(visionConfig.server, visionConfig.team)
+    dataEx.start()
 
     mainVisionCamera = VisionCamera.getMainVisionCamera(visionConfig)
     visionOutputServer = None
@@ -57,12 +52,25 @@ if __name__ == "__main__":
     visionProcessor = VisionProcessor(frameReadTimeout=0.3)
     # loop forever
     while True:
+        # TODO: read the frame from the VisionCamera object instead?
         frame = visionProcessor.readCameraFrame(mainVisionCamera)
         if frame is not None:
             # TODO
             gripFrame = visionProcessor.processFrame(frame)
             if visionOutputServer:
                 visionOutputServer.postFrame(gripFrame)
+
+            ntBlobResult = 9999.99
+            if visionProcessor.blobResult:
+                ntBlobResult = visionProcessor.blobResult
+            
+            print("Put to network table: {blobResult: " + str(ntBlobResult) + "}")
+            dataEx.put('blobResult', ntBlobResult)
+#            dataEx.sdPut('blobResult', ntBlobResult)
+
+#            gyroAngle = robotPrefTable.getValue('Gyro Angle', '?')
+#            print("gyroAngle = " + str(gyroAngle))
+
         else:
             print("No frame to process")
 

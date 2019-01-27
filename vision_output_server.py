@@ -4,8 +4,8 @@ DEFAULT_SERVER_CONFIG = {
     'serverPort': None,  # will use next available port by default
     'name': 'grip',
     'displayName': 'displayName',
-    'frameWidth': 320,
-    'frameHeight': 240
+    'frameWidth': 640,
+    'frameHeight': 480
 }
 class VisionOutputServer:
 
