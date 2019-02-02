@@ -60,16 +60,14 @@ if __name__ == "__main__":
             if visionOutputServer:
                 visionOutputServer.postFrame(gripFrame)
 
-            ntBlobResult = 9999.99
-            if visionProcessor.blobResult:
-                ntBlobResult = visionProcessor.blobResult
+            ntContoursCenterX = visionProcessor.contoursCenterPoint['x']
+            ntContoursCenterY = visionProcessor.contoursCenterPoint['y']
             
-            print("Put to network table: {blobResult: " + str(ntBlobResult) + "}")
-            dataEx.put('blobResult', ntBlobResult)
-#            dataEx.sdPut('blobResult', ntBlobResult)
+            print("Put to network table: {contoursCenterX: " + str(ntContoursCenterX) + 
+                ", countoursCenterY: " +  str(ntContoursCenterY) + "}")
 
-#            gyroAngle = robotPrefTable.getValue('Gyro Angle', '?')
-#            print("gyroAngle = " + str(gyroAngle))
+            dataEx.put('contoursCenterX', ntContoursCenterX)
+            dataEx.put('contoursCenterY', ntContoursCenterY)
 
         else:
             print("No frame to process")
