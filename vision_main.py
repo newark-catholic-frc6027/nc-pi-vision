@@ -62,12 +62,14 @@ if __name__ == "__main__":
 
             ntContoursCenterX = visionProcessor.contoursCenterPoint['x']
             ntContoursCenterY = visionProcessor.contoursCenterPoint['y']
+            ntNumContours = visionProcessor.contourCount
             
             print("Put to network table: {contoursCenterX: " + str(ntContoursCenterX) + 
-                ", countoursCenterY: " +  str(ntContoursCenterY) + "}")
+                ", countoursCenterY: " +  str(ntContoursCenterY) + ", numOfContours: "+ str(ntNumContours) +"}")
 
             dataEx.put('contoursCenterX', ntContoursCenterX)
             dataEx.put('contoursCenterY', ntContoursCenterY)
+            dataEx.put('numContours', ntNumContours)
 
         else:
             print("No frame to process")

@@ -9,6 +9,9 @@ class VisionProcessor:
         self.frameReadTimeout = frameReadTimeout
         self.gripPipeline = GripPipeline()
         self.contoursCenterPoint = {'x': None, 'y' : None}
+        self.contourAreas = []
+        self.contourCount = 0
+
 
     def readCameraFrame(self, visionCamera):
         """
@@ -31,12 +34,18 @@ class VisionProcessor:
         self.contoursCenterPoint['x'] = -1.0
         self.contoursCenterPoint['y'] = -1.0
         self.gripPipeline.process(frame)
+        self.contourAreas = []
+        self.contourCount = 0
 
         if self.gripPipeline.find_contours_output:
             print("##################################################")
             print("# of contours: %d" % len(self.gripPipeline.find_contours_output))
             i = 0
             numContours = len(self.gripPipeline.find_contours_output)
+            self.contourCount = numContours
+            print("num of contours: %d" % self.contourCount)
+
+            
             if numContours == 2:
                 contour_x_positions = []
                 contour_y_positions = []
@@ -51,7 +60,10 @@ class VisionProcessor:
                         cy = int(moments['m01'] / moments['m00'])
                         contour_x_positions.append(cx)
                         contour_y_positions.append(cy)
-
+                    
+                    
+                    area = cv2.contourArea(contour)
+                    self.contourAreas.append(area)
                     perimeter = cv2.arcLength(contour, True)
                     approx = cv2.approxPolyDP(contour, 0.05 * perimeter, True)
                     print("> " + str(datetime.datetime.now()) + " # of points: " + str(len(approx)))
