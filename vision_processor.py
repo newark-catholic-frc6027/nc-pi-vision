@@ -52,6 +52,7 @@ class VisionProcessor:
 
                 # Find the centers of mass of the contours
                 # https://docs.opencv.org/3.4.2/dd/d49/tutorial_py_contour_features.html
+                
                 for contour in self.gripPipeline.find_contours_output:
                     print("----  contour %d ----" % i)
                     moments = cv2.moments(contour)
@@ -64,10 +65,12 @@ class VisionProcessor:
                     
                     area = cv2.contourArea(contour)
                     self.contourAreas.append(area)
-                    perimeter = cv2.arcLength(contour, True)
-                    approx = cv2.approxPolyDP(contour, 0.05 * perimeter, True)
-                    print("> " + str(datetime.datetime.now()) + " # of points: " + str(len(approx)))
-                    i += 1
+                    #perimeter = cv2.arcLength(contour, True)
+                    #approx = cv2.approxPolyDP(contour, 0.05 * perimeter, True)
+                    #print("> " + str(datetime.datetime.now()) + " # of points: " + str(len(approx)))
+                    #i += 1
+                #EndforLoop
+                print("area of contours: " % self.contourAreas)
 
                 # Calculate the center between two contours (i.e. half the distance between the two contours)
                 center_x = -1
@@ -87,6 +90,7 @@ class VisionProcessor:
                 self.contoursCenterPoint['y'] = center_y
 
             else:
+                #filter down to 2 contours
                 print("!!!!!!!!!!!!!!!!!!! NOT 2 CONTOURS !!!!!!!!!!!!!!!!!!!")
 
         return self.gripPipeline.hsv_threshold_output
