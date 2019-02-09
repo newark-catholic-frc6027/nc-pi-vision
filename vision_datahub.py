@@ -1,6 +1,6 @@
 from networktables import NetworkTablesInstance
 
-class VisionDataExchanger:
+class VisionDatahub:
 
         def __init__(self, serverMode=False, team='6027'):
             self.serverMode = serverMode
@@ -24,12 +24,16 @@ class VisionDataExchanger:
             self._visionTable = self.networkTable.getTable('vision')
             self._sdTable = self.networkTable.getTable('SmartDashboard')
 
-        def put(self, key, value):
+        def put(self, keyOrDict, value=None):
+            if type(keyOrDict) is dict:
+                for key, value in keyOrDict.items():
+                    self.put(key, value)
+
             # First check cache for an entry.
             # If found in cache, just update the value
             # If not found in cache, create the value in the network
             #  table and cache it
-            
+            key = keyOrDict # Must have a key at this point
             entry = None
             if key in self._visionEntries:
                 entry = self._visionEntries[key]

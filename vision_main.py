@@ -6,7 +6,7 @@ from vision_camera import VisionCamera
 from vision_config import VisionConfig
 from vision_processor import VisionProcessor
 from vision_output_server import VisionOutputServer
-from vision_data_exchanger import VisionDataExchanger
+from vision_datahub import VisionDatahub
 
 MAIN_VISION_CAMERA_INDEX = 0
 
@@ -30,16 +30,16 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # For ouputting info to Network tables
-    dataEx = VisionDataExchanger(visionConfig.server, visionConfig.team)
-    dataEx.start()
+    datahub = VisionDatahub(visionConfig.server, visionConfig.team)
+    datahub.start()
 
     mainVisionCamera = VisionCamera.getMainVisionCamera(visionConfig)
-    visionOutputServer = None
+    visionOut = None
     # If outputServerPort is not set, then output server will not be started
     if outputServerPort:
-        visionOutputServer = VisionOutputServer()
-        visionOutputServer.setConfigValue('serverPort', None if outputServerPort == 'next' else int(outputServerPort))
-        visionOutputServer.start()
+        visionOut = VisionOutputServer()
+        visionOut.setConfigValue('serverPort', None if outputServerPort == 'next' else int(outputServerPort))
+        visionOut.start()
         print("Vision Output Server started on port '%s'" % outputServerPort)
     else: 
         print("Vision Output Server not started, no port given")
@@ -49,39 +49,25 @@ if __name__ == "__main__":
         print("No cameras found, exiting!")
         sys.exit()
 
-    visionProcessor = VisionProcessor(frameReadTimeout=0.3)
+    vp = VisionProcessor(frameReadTimeout=0.3)
     # loop forever
     while True:
         # TODO: read the frame from the VisionCamera object instead?
-        frame = visionProcessor.readCameraFrame(mainVisionCamera)
+        frame = vp.readCameraFrame(mainVisionCamera)
         if frame is not None:
-            # TODO
-            gripFrame = visionProcessor.processFrame(frame)
-            if visionOutputServer:
-                visionOutputServer.postFrame(gripFrame)
+            gripFrame = vp.processFrame(frame)
+            if visionOut: visionOut.postFrame(gripFrame)
 
-            ntContoursCenterX = visionProcessor.contoursCenterPoint['x']
-            ntContoursCenterY = visionProcessor.contoursCenterPoint['y']
-            ntNumContours = visionProcessor.contourCount
-            contourAreas = visionProcessor.contourAreas
-            if len(contourAreas)>1:
+            visionData = {
+                'contoursCenterX' : vp.contoursCenterPoint['x'],
+                'contoursCenterY' : vp.contoursCenterPoint['y'],
+                'numContours'     : vp.contourCount,
+                'contourAreaLeft' : vp.contourAreas[1] if len(vp.contourAreas) > 1 else -1,
+                'contourAreaRight': vp.contourAreas[0] if len(vp.contourAreas) > 1 else -1,
+            }
+            print("Put to datahub: {" + ', '.join(['{0}:{1}'.format(k, v) for k,v in visionData.items()]) + "}")
 
-                ntContourAreaLeft = visionProcessor.contourAreas[1]
-                ntContourAreaRight = visionProcessor.contourAreas[0]
-
-            else:
-                ntContourAreaLeft = ntContourAreaRight = -1
-
-            print("Put to network table: {contoursCenterX: " + str(ntContoursCenterX) + 
-                ", countoursCenterY: " +  str(ntContoursCenterY) + ", numOfContours: "+ str(ntNumContours) + 
-                ", contourAreaLeft: "+ str(ntContourAreaLeft) + ", contourAreaRight: "+ str(ntContourAreaRight) + "}")
-
-            dataEx.put('contoursCenterX', ntContoursCenterX)
-            dataEx.put('contoursCenterY', ntContoursCenterY)
-            dataEx.put('numContours', ntNumContours)
-            dataEx.put('contourAreaLeft', ntContourAreaLeft)
-            dataEx.put('contourAreaRight', ntContourAreaRight)
-
+            datahub.put(visionData)
         else:
             print("No frame to process")
 

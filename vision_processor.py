@@ -67,9 +67,8 @@ class VisionProcessor:
                     self.contourAreas.append(area)
                     #perimeter = cv2.arcLength(contour, True)
                     #approx = cv2.approxPolyDP(contour, 0.05 * perimeter, True)
-                    #print("> " + str(datetime.datetime.now()) + " # of points: " + str(len(approx)))
-                    #i += 1
-                #EndforLoop
+                #end for loop
+
                 print("area of contours: " % self.contourAreas)
 
                 # Calculate the center between two contours (i.e. half the distance between the two contours)
@@ -80,11 +79,6 @@ class VisionProcessor:
                     center_x = (contour_x_positions[0] + contour_x_positions[1]) / 2.0
                     center_y = (contour_y_positions[0] + contour_y_positions[1]) / 2.0
 
-                # Publish to the 'vision' network table
-                # table = NetworkTables.getTable(VISION_TABLE)
-                # table.putValue(CENTER_X, center_x)
-                # table.putValue(CENTER_Y, center_y)
-
                 print('center = (' + str(center_x) + ', ' + str(center_y) + ')')
                 self.contoursCenterPoint['x'] = center_x
                 self.contoursCenterPoint['y'] = center_y
@@ -94,37 +88,4 @@ class VisionProcessor:
                 print("!!!!!!!!!!!!!!!!!!! NOT 2 CONTOURS !!!!!!!!!!!!!!!!!!!")
 
         return self.gripPipeline.hsv_threshold_output
-'''
-                for point in approx:
-                    print("> " + str(datetime.datetime.now()) + " points of contour " + str(i) + ":")
-                    print("coords:")
-                    print(point)
-                    print("size: " + str(point.size))
-'''
-'''
-
-        if self.gripPipeline.find_blobs_output:
-            print("##################################################")
-            print("# of blobs: %d" % len(self.gripPipeline.find_blobs_output))
-
-            i = 0
-            keypoints = self.gripPipeline.find_blobs_output
-            for keypoint in keypoints:
-                print("> " + str(datetime.datetime.now()) + " points of keypoint " + str(i) + ":")
-                print("coords:")
-                print(*keypoint.pt)
-                print("size: " + str(keypoint.size))
-                i += 1
-
-            if keypoints and len(keypoints) == 2:
-                # Blobs are stored right to left in the array
-                #                 right blob size   - left blob size
-                self.blobResult = keypoints[0].size - keypoints[1].size
-            else:
-                self.blobResult = None
-
-        return self.gripPipeline.rgb_threshold_output
-        '''
-        # cv2.drawMarker(frame, (160, 120), (0, 0, 255))
-        # return frame
        
