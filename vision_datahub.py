@@ -28,7 +28,9 @@ class VisionDatahub:
             if type(keyOrDict) is dict:
                 for key, value in keyOrDict.items():
                     self.put(key, value)
-
+                # end for
+                return
+                
             # First check cache for an entry.
             # If found in cache, just update the value
             # If not found in cache, create the value in the network

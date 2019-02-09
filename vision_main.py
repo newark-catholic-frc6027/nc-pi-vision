@@ -65,9 +65,9 @@ if __name__ == "__main__":
                 'contourAreaLeft' : vp.contourAreas[1] if len(vp.contourAreas) > 1 else -1,
                 'contourAreaRight': vp.contourAreas[0] if len(vp.contourAreas) > 1 else -1,
             }
+            datahub.put(visionData)
             print("Put to datahub: {" + ', '.join(['{0}:{1}'.format(k, v) for k,v in visionData.items()]) + "}")
 
-            datahub.put(visionData)
         else:
             print("No frame to process")
 
