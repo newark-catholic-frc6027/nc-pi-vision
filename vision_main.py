@@ -7,6 +7,7 @@ from vision_config import VisionConfig
 from vision_processor import VisionProcessor
 from vision_output_server import VisionOutputServer
 from vision_datahub import VisionDatahub
+from pprint import pprint
 
 MAIN_VISION_CAMERA_INDEX = 0
 
@@ -62,11 +63,10 @@ if __name__ == "__main__":
                 'contoursCenterX' : vp.contoursCenterPoint['x'],
                 'contoursCenterY' : vp.contoursCenterPoint['y'],
                 'numContours'     : vp.contourCount,
-                'contourAreaLeft' : vp.contourAreas[1] if len(vp.contourAreas) > 1 else -1,
-                'contourAreaRight': vp.contourAreas[0] if len(vp.contourAreas) > 1 else -1,
+                'contourAreaLeft' : vp.contourAreas[0] if len(vp.contourAreas) > 1 else -1,
+                'contourAreaRight': vp.contourAreas[1] if len(vp.contourAreas) > 1 else -1,
             }
-            datahub.put(visionData)
-            print("Put to datahub: {" + ', '.join(['{0}:{1}'.format(k, v) for k,v in visionData.items()]) + "}")
+            print("Put to datahub: {" + ', '.join('{}:{}'.format(*el) for el in visionData.items().sort()) + "}")
 
         else:
             print("No frame to process")
