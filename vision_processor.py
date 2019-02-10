@@ -1,6 +1,8 @@
 import cv2
+import numpy as np
 from grip import GripPipeline
 import datetime
+import math
 
 class VisionProcessor:
 
@@ -11,6 +13,7 @@ class VisionProcessor:
         self.contoursCenterPoint = {'x': None, 'y' : None}
         self.contourAreas = []
         self.contourCount = 0
+        self.colors = [(0,0,255), (0,255,0), (255,0,0)]
 
 
     def readCameraFrame(self, visionCamera):
@@ -37,6 +40,8 @@ class VisionProcessor:
         self.contourAreas = []
         self.contourCount = 0
 
+        outputFrame = self.gripPipeline.hsv_threshold_output
+
         if self.gripPipeline.find_contours_output:
             print("##################################################")
             print("# of contours: %d" % len(self.gripPipeline.find_contours_output))
@@ -46,9 +51,6 @@ class VisionProcessor:
             print("num of contours: %d" % self.contourCount)
 
             if numContours >= 2 and numContours <= 3:
-
-                contour_x_positions = []
-                contour_y_positions = []
                 contourInfo = []
                 # Find the centers of mass of the contours
                 # https://docs.opencv.org/3.4.2/dd/d49/tutorial_py_contour_features.html
@@ -60,25 +62,40 @@ class VisionProcessor:
                     if moments is not None and moments['m00'] is not None and moments['m00'] != 0.0:
                         cx = int(moments['m10'] / moments['m00'])
                         cy = int(moments['m01'] / moments['m00'])
-#                        contour_x_positions.append((i, cx))
-#                        contour_y_positions.append((i, cy))                                       
-                    area = cv2.contourArea(contour)
-                    print("----  contour %s: area -> %s ----" % (str(i+1), str(area)))
+                    #end if
 
-                    contourInfo.append({'x': cx, 'y': cy, 'area': area})
+                    area = cv2.contourArea(contour)
+                    rect = cv2.minAreaRect(contour)
+                    box = cv2.boxPoints(rect)
+#                    x,y,w,h = cv2.boundingRect(contour)
+#                    outputFrame = cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
+                    box = np.int0(box)
+                    outputFrame = cv2.drawContours(frame,[box],0,self.colors[i],2)
+                    print("----  contour %s: area = %s----" % (str(i+1), str(area)))
+
+                    # Sort by y coords and grab points with smallest y (topPt) and next to largest y (botPt)
+                    sortedPts = sorted(box, key=lambda pt: pt[1])
+                    topPt = sortedPts[0]
+                    botPt = sortedPts[2]
+                    print("topPt(x,y) = %s,%s; botPt(x,y) = %s,%s" % (str(topPt[0]), str(topPt[1]), str(botPt[0]), str(botPt[1])))
+                    slope = (topPt[1] - botPt[1])/(topPt[0] - botPt[0])
+                    angle = math.degrees(math.atan(slope))
+
+
+                    contourInfo.append({'x': cx, 'y': cy, 'area': area, 'angle': angle})
 #                    self.contourAreas.append((i, area))
                     i += 1
                     #perimeter = cv2.arcLength(contour, True)
                     #approx = cv2.approxPolyDP(contour, 0.05 * perimeter, True)
                 #end for loop
+
                 # sort list of contourInfo by x-coordinate
                 contourInfo.sort(key=lambda c: c['x'])
-
-
-#                print("area of contours: " % self.contourAreas)
-                # Calculate the center between two contours (i.e. half the distance between the two contours)
-#                center_x = -1
-#                center_y = -1
+                j = 0
+                for c in contourInfo:
+                    j += 1
+                    print("---- SORTED contour %s: area = %s; x = %s; angle = %s----" % (str(j), str(c['area']), str(c['x']), str(c['angle'])))
+                
 
                 # Trim the contours down to the two we are interested in which is the
                 # two that are farthest apart
@@ -106,7 +123,6 @@ class VisionProcessor:
                 self.contourAreas.append(contourInfo[1]['area'])
                 print('area of contours: [%s], thrownOut[%s] -> %s' % (', '.join(map(str, self.contourAreas)), str(removedIndex), str(removedContourArea)))
 
-#                if (len(contour_x_positions) == 2 and len(contour_y_positions) == 2):
                 center_x = (contourInfo[0]['x'] + contourInfo[1]['x']) / 2.0
                 center_y = (contourInfo[0]['y'] + contourInfo[1]['y']) / 2.0
 
@@ -117,5 +133,5 @@ class VisionProcessor:
                 #filter down to 2 contours
                 print("!!!!!!!!!!!!!!!!!!! NOT 2 CONTOURS !!!!!!!!!!!!!!!!!!!")
 
-        return self.gripPipeline.hsv_threshold_output
+        return outputFrame
        
