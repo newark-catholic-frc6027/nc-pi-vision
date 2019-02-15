@@ -25,6 +25,7 @@ class VisionProcessor:
         self.outputFrame = None
         self.foundContourPair = False
         self.contourPairCenterX = -1
+        self.distanceToTargetInches = -1
 
 
     def readCameraFrame(self, visionCamera):
@@ -52,6 +53,7 @@ class VisionProcessor:
         self.contourCount = 0
         self.foundContourPair = False
         self.contourPairCenterX = -1
+        self.distanceToTargetInches = -1
 
 
         outputFrame = self.gripPipeline.hsv_threshold_output
@@ -83,6 +85,9 @@ class VisionProcessor:
                 print('center = (' + str(center_x) + ', ' + str(center_y) + ')')
                 self.contoursCenterPoint['x'] = center_x
                 self.contoursCenterPoint['y'] = center_y
+
+                self.calculateDistanceToTarget(contourInfoList[0], contourInfoList[1])
+
             else:
                 #filter down to 2 contours
                 print("!!!!!!!!!!!!!!!!!!! NOT 2 CONTOURS !!!!!!!!!!!!!!!!!!!")
@@ -299,6 +304,16 @@ class VisionProcessor:
 
     def drawOutline(self, currentFrame, contourBox, color):
         self.outputFrame = cv2.drawContours(currentFrame, contourBox, 0, color, 2)
+
+    def calculateDistanceToTarget(self, leftContourInfo, rightContourInfo):
+        contourAreaAvg = (leftContourInfo.area + rightContourInfo.area) / 2.0
+        a1 = 191.58159
+        a2 = 5.98129
+        x0 = 78.95908
+        p = 0.69955
+
+        self.distanceToTargetInches = a2 + ((a1 - a2)/(1 + pow(contourAreaAvg/x0, p)))
+
 
 class ContourInfo:
     def __init__(self, contour, centerX, centerY, area, angle, contourBox):

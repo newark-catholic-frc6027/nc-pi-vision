@@ -65,8 +65,10 @@ if __name__ == "__main__":
                 'numContours'     : vp.contourCount,
                 'contourAreaLeft' : vp.contourAreas[0] if len(vp.contourAreas) > 1 else -1,
                 'contourAreaRight': vp.contourAreas[1] if len(vp.contourAreas) > 1 else -1,
+                'distanceToTargetInches': vp.distanceToTargetInches
             }
-            print("Put to datahub: {" + ', '.join('{}:{}'.format(*el) for el in visionData.items().sort()) + "}")
+            datahub.put(visionData)
+            print("Put to datahub: {" + ', '.join(['{}:{}'.format(k,v) for k,v in sorted(visionData.items())]) + "}")
 
         else:
             print("No frame to process")
