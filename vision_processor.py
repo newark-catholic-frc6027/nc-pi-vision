@@ -190,6 +190,8 @@ class VisionProcessor:
                 self.drawOutline(currentFrame, contourLeft.contourBox, VisionProcessor.COLOR_GREEN)
                 self.drawOutline(currentFrame, contourRight.contourBox, VisionProcessor.COLOR_GREEN)
                 returnContourInfoList = contourInfoList
+                self.contourPairCenterX = (contourLeft.centerX + contourRight.centerX) / 2.0
+
         elif numContours == 3:
             # Possibilities are this:
             #  case 1 => /  \  /   or  case 2 =>  \  /  \ 
@@ -203,12 +205,15 @@ class VisionProcessor:
                 self.drawOutline(currentFrame, contourCenter.contourBox, VisionProcessor.COLOR_GREEN)
                 self.drawOutline(currentFrame, contourRight.contourBox, VisionProcessor.COLOR_RED)
                 returnContourInfoList = [contourLeft, contourCenter]
+                self.contourPairCenterX = (contourLeft.centerX + contourCenter.centerX) / 2.0
+
             elif contourLeft.angle >= 0 and contourCenter.angle < 0 and contourRight.angle > 0:
                 # case 2, color first in red, last two in green
                 self.drawOutline(currentFrame, contourLeft.contourBox, VisionProcessor.COLOR_RED)
                 self.drawOutline(currentFrame, contourCenter.contourBox, VisionProcessor.COLOR_GREEN)
                 self.drawOutline(currentFrame, contourRight.contourBox, VisionProcessor.COLOR_GREEN)
                 returnContourInfoList = [contourCenter, contourRight]
+                self.contourPairCenterX = (contourCenter.centerX + contourRight.centerX) / 2.0
             else:
                 self.drawOutline(currentFrame, contourLeft.contourBox, VisionProcessor.COLOR_RED)
                 self.drawOutline(currentFrame, contourCenter.contourBox, VisionProcessor.COLOR_RED)
@@ -277,7 +282,7 @@ class VisionProcessor:
                     index += 1
                 #end for
                 
-                # Now loop through all the pairs and color the best pair green its the best pair
+                # Now loop through all the pairs and color the best pair green
                 self.drawOutline(currentFrame, contourPairClosestToCenter[0].contourBox, VisionProcessor.COLOR_GREEN)
                 self.drawOutline(currentFrame, contourPairClosestToCenter[1].contourBox, VisionProcessor.COLOR_GREEN)
                 self.contourPairCenterX = (contourPairClosestToCenter[1].centerX + contourPairClosestToCenter[0].centerX) / 2.0
