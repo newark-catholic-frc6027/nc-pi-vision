@@ -12,9 +12,15 @@ class Log:
         self.logLevelNum = Log.LOG_LEVELS[self.logLevel]
         self.logFileCacheSize = config['Logging']['EntryCacheSize'] or 1
         self.logFileName = config['Logging']['LogFilename']
+        self.logImageDir = config['Logging']['LogImageDir']
 
+
+    def logFrame(self, frame, filenamePrefix, filenameSuffix):
+        # TODO
+        return
 
     def log(self, level, msg):
+        # TODO
         return
         '''
         if self.logLevelNum <= level:
@@ -24,7 +30,7 @@ class Log:
             # Print to screen and/or file
             # possibly flush the cache to file
         '''
-        
+
     def trace(self, msg):
         self.log(Log.TRACE, msg)
 
