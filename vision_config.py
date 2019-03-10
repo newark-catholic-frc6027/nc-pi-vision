@@ -1,5 +1,7 @@
 import json
 import sys
+import configparser
+import os.path
 
 #   JSON format:
 #   {
@@ -39,18 +41,21 @@ class CameraConfig: pass
 
 class VisionConfig:
 
-    DEFAULT_CONFIG_FILE = "/boot/frc.json"
+    DEFAULT_FRC_CONFIG_FILE = "/boot/frc.json"
+    DEFAULT_VISION_CONFIG_FILE = "./vision_cfg.ini"
 
-    def __init__(self, configFile=None):
+    def __init__(self, frcConfigFile=None, visionConfigFile=None):
         self.team = None
         self.server = False
         self.cameraConfigs = []
-        self.configFile = configFile or VisionConfig.DEFAULT_CONFIG_FILE
+        self.frcConfigFile = frcConfigFile or VisionConfig.DEFAULT_FRC_CONFIG_FILE
+        self.visionConfigFile = visionConfigFile or VisionConfig.DEFAULT_VISION_CONFIG_FILE
+        self.config = None
 
 
     """Report parse error."""
     def __parseError(self, str):
-        print("config error in '" + self.configFile + "': " + str, file=sys.stderr)
+        print("config error in '" + self.frcConfigFile + "': " + str, file=sys.stderr)
 
     """Read single camera configuration."""
     def __readCameraConfig(self, config):
@@ -78,14 +83,24 @@ class VisionConfig:
         self.cameraConfigs.append(cam)
         return True
 
+    def readVisionConfig(self):
+        self.config = configparser.ConfigParser()
+        if self.visionConfigFile and os.path.isfile(self.visionConfigFile):
+            try:
+                self.config.read(self.visionConfigFile)
+            except:
+                print("Vision config file not found at '{}': {}".format(self.visionConfigFile, sys.exc_info()[0]))
+
+
     """Read configuration file."""
     def readConfig(self):
+        self.readVisionConfig()
         # parse file
         try:
-            with open(self.configFile, "rt") as f:
+            with open(self.frcConfigFile, "rt") as f:
                 j = json.load(f)
         except OSError as err:
-            print("could not open '{}': {}".format(self.configFile, err), file=sys.stderr)
+            print("could not open '{}': {}".format(self.frcConfigFile, err), file=sys.stderr)
             return False
 
         # top level must be an object
@@ -119,5 +134,6 @@ class VisionConfig:
         for camera in cameras:
             if not self.__readCameraConfig(camera):
                 return False
+
 
         return True
