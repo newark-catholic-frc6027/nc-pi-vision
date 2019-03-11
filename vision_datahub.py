@@ -1,5 +1,6 @@
 from networktables import NetworkTablesInstance
 import time
+from vision_log import Log
 
 class VisionDatahub:
 
@@ -12,15 +13,16 @@ class VisionDatahub:
             self._sdTable = None
             self._sdEntries = {}
             self.networkTableConnected = False
+            self.log = Log.getInstance()
 
         def start(self):
             # start NetworkTables
             self.networkTable = NetworkTablesInstance.getDefault()
             if self.serverMode:
-                print("Startup up NetworkTables server")
+                self.log.info("Startup up NetworkTables server")
                 self.networkTable.startServer()
             else:
-                print("Initalizing NetworkTables client for team {}".format(self.team))
+                self.log.info("Initalizing NetworkTables client for team {}".format(self.team))
                 self._ensureConnected(20)
             #end if
 
@@ -64,7 +66,7 @@ class VisionDatahub:
                 self.networkTable.startClientTeam(self.team)
                 self.networkTableConnected = self.networkTable.isConnected()
                 if self.networkTableConnected:
-                    print("NetworkTables CONNECTED!")
+                    self.log.info("NetworkTables CONNECTED!")
                 else:
                     if maxAttempts > 1:
                         attemptCount = 1
@@ -75,9 +77,9 @@ class VisionDatahub:
                             attemptCount += 1
                         #end while
                         if not self.networkTableConnected:
-                            print(">> WARN >> NetworkTables NOT CONNECTED")
+                            self.log.warn("NetworkTables NOT CONNECTED")
                         else:
-                            print("NetworkTables CONNECTED after %d attempts!" % attemptCount)
+                            self.log.info("NetworkTables CONNECTED after %d attempts!" % attemptCount)
                     #end if
 
 

@@ -8,6 +8,7 @@ from vision_processor import VisionProcessor
 from vision_output_server import VisionOutputServer
 from vision_datahub import VisionDatahub
 from pprint import pprint
+from vision_log import Log
 
 MAIN_VISION_CAMERA_INDEX = 0
 
@@ -27,8 +28,10 @@ if __name__ == "__main__":
 
     # read configuration
     if not visionConfig.readConfig():
-        print("Failed to load configuration file '%s'" % visionConfig.configFile)
+        print("Failed to load configuration file '%s'" % visionConfig.frcConfigFile)
         sys.exit(1)
+
+    log = Log.getInstance(visionConfig.config)
 
     # For ouputting info to Network tables
     datahub = VisionDatahub(visionConfig.server, visionConfig.team)
@@ -41,13 +44,13 @@ if __name__ == "__main__":
         visionOut = VisionOutputServer()
         visionOut.setConfigValue('serverPort', None if outputServerPort == 'next' else int(outputServerPort))
         visionOut.start()
-        print("Vision Output Server started on port '%s'" % outputServerPort)
+        log.info("Vision Output Server started on port '%s'" % outputServerPort)
     else: 
-        print("Vision Output Server not started, no port given")
+        log.warn("Vision Output Server not started, no port given")
 
     # TODO: do we want to retry here?
     if not mainVisionCamera:
-        print("No cameras found, exiting!")
+        log.error("No cameras found, exiting!")
         sys.exit()
 
     vp = VisionProcessor(frameReadTimeout=0.3)
@@ -68,10 +71,10 @@ if __name__ == "__main__":
                 'distanceToTargetInches': vp.distanceToTargetInches
             }
             datahub.put(visionData)
-            print("Put to datahub: {" + ', '.join(['{}:{}'.format(k,v) for k,v in sorted(visionData.items())]) + "}")
+            log.debug("Put to datahub: {" + ', '.join(['{}:{}'.format(k,v) for k,v in sorted(visionData.items())]) + "}")
 
         else:
-            print("No frame to process")
+            log.info("No frame to process")
 
         # TODO: Should we keep or not?    
         # time.sleep(0.0010)

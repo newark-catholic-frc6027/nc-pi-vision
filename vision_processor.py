@@ -3,6 +3,7 @@ import numpy as np
 from grip import GripPipeline
 import datetime
 import math
+from vision_log import Log
 
 class VisionProcessor:
     COLOR_RED =   (0, 0, 255)
@@ -26,6 +27,7 @@ class VisionProcessor:
         self.foundContourPair = False
         self.contourPairCenterX = -1
         self.distanceToTargetInches = -1
+        self.log = Log.getInstance()
 
 
     def readCameraFrame(self, visionCamera):
@@ -39,7 +41,7 @@ class VisionProcessor:
         frameTime, frame = cvSink.grabFrame(None, self.frameReadTimeout)
 
         if frameTime == 0:
-            print("Failed to get a frame")
+            self.log.error("Failed to get a frame")
             return None
 
         return frame
@@ -59,30 +61,30 @@ class VisionProcessor:
         outputFrame = self.gripPipeline.hsv_threshold_output
 
         if self.gripPipeline.find_contours_output:
-            print("##################################################")
-            print("# of contours: %d" % len(self.gripPipeline.find_contours_output))
+            self.log.debug("##################################################")
+            self.log.debug("# of contours: %d" % len(self.gripPipeline.find_contours_output))
 #            i = 0
             numContours = len(self.gripPipeline.find_contours_output)
             self.contourCount = numContours
-            print("num of contours: %d" % self.contourCount)
+            self.log.debug("num of contours: %d" % self.contourCount)
 
             contourInfoList = self.generateContourInfo(frame, self.gripPipeline.find_contours_output)
             if len(contourInfoList) < VisionProcessor.MAX_CONTOUR_THRESHOLD:
                 contourInfoList = self.findBestContours(frame, contourInfoList)
             else:
                 #filter down to 2 contours
-                print("!!!!!!!!!!!!!!!!!!! TOO MANY CONTOURS !!!!!!!!!!!!!!!!!!!")
+                self.log.info("!!!!!!!!!!!!!!!!!!! TOO MANY CONTOURS !!!!!!!!!!!!!!!!!!!")
 
 
             if len(contourInfoList) == 2:
                 self.contourAreas.append(contourInfoList[0].area)
                 self.contourAreas.append(contourInfoList[1].area)
-                print('area of contours: [%s]' % (', '.join(map(str, self.contourAreas))))
+                self.log.debug('area of contours: [%s]' % (', '.join(map(str, self.contourAreas))))
 
                 center_x = (contourInfoList[0].centerX + contourInfoList[1].centerX) / 2.0
                 center_y = (contourInfoList[0].centerY + contourInfoList[1].centerY) / 2.0
 
-                print('center = (' + str(center_x) + ', ' + str(center_y) + ')')
+                self.log.debug('center = (' + str(center_x) + ', ' + str(center_y) + ')')
                 self.contoursCenterPoint['x'] = center_x
                 self.contoursCenterPoint['y'] = center_y
 
@@ -90,7 +92,7 @@ class VisionProcessor:
 
             else:
                 #filter down to 2 contours
-                print("!!!!!!!!!!!!!!!!!!! NOT 2 CONTOURS !!!!!!!!!!!!!!!!!!!")
+                self.log.info("!!!!!!!!!!!!!!!!!!! NOT 2 CONTOURS !!!!!!!!!!!!!!!!!!!")
 
         self.outputFrame = self.drawCenter(self.outputFrame)
         return self.outputFrame
@@ -138,13 +140,13 @@ class VisionProcessor:
             rect = cv2.minAreaRect(contour)
             box = cv2.boxPoints(rect)
             box = np.int0(box)
-            print("----  contour %s: area = %s----" % (str(i+1), str(area)))
+            self.log.debug("----  contour %s: area = %s----" % (str(i+1), str(area)))
 
             # Sort by y coords and grab points with smallest y (topPt) and next to largest y (botPt)
             sortedPts = sorted(box, key=lambda pt: pt[1])
             topPt = sortedPts[0]
             botPt = sortedPts[2]
-            print("topPt(x,y) = %s,%s; botPt(x,y) = %s,%s" % (str(topPt[0]), str(topPt[1]), str(botPt[0]), str(botPt[1])))
+            self.log.debug("topPt(x,y) = %s,%s; botPt(x,y) = %s,%s" % (str(topPt[0]), str(topPt[1]), str(botPt[0]), str(botPt[1])))
             slope = (topPt[1] - botPt[1])/(topPt[0] - botPt[0])
             angle = math.degrees(math.atan(slope))
 
@@ -161,14 +163,14 @@ class VisionProcessor:
         i = 0
         for c in contourInfoList:
             i += 1
-            print("---- SORTED contour %s: area = %s; x = %s; angle = %s----" % (str(i), str(c.area), str(c.centerX), str(c.angle)))
+            self.log.info("---- SORTED contour %s: area = %s; x = %s; angle = %s----" % (str(i), str(c.area), str(c.centerX), str(c.angle)))
 
         return contourInfoList
 
     def findBestContours(self, currentFrame, contourInfoList):
         numContours = len(contourInfoList)
         if contourInfoList is None or numContours == 0:
-            print("!!!!!!!!!!!!!!!!!!! NO CONTOURS !!!!!!!!!!!!!!!!!!!")
+            self.log.warn("!!!!!!!!!!!!!!!!!!! NO CONTOURS !!!!!!!!!!!!!!!!!!!")
             return []
 
         returnContourInfoList = []
@@ -244,7 +246,7 @@ class VisionProcessor:
                             #  0 - First contour of the pair
                             #  1 - Second contour of the pair
                             #  2 - (center X value of second contour + center X value of start contour) / 2
-                            print("curIndex = %s, startPairContourIndex = %s, curContourInfo.angle = %s" 
+                            self.log.debug("curIndex = %s, startPairContourIndex = %s, curContourInfo.angle = %s" 
                                 % (str(curIndex), str(startPairContourIndex), str(curContourInfo.angle)))
                             contourPairs.append((
                                 startPairContourInfo, 
