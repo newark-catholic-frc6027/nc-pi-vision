@@ -52,13 +52,6 @@ class Log:
             if flush or self.entryCount >= self.logFileCacheSize:
                 self._flushCache()
 
-    def _flushCache(self):
-        file = open(self.logFilename, 'a+')
-        file.write('\n'.join(self.cache))
-        file.flush()
-        file.close()
-        self.entryCount = 0
-
     def trace(self, msg, flush=False):
         self.log(Log.TRACE, msg, flush)
 
@@ -73,3 +66,10 @@ class Log:
 
     def error(self, msg, flush=False):
         self.log(Log.ERROR, msg, flush)
+
+    def _flushCache(self):
+        file = open(self.logFilename, 'a+')
+        file.write('\n'.join(self.cache))
+        file.flush()
+        file.close()
+        self.entryCount = 0
