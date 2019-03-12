@@ -51,12 +51,15 @@ def waitRobot(log, maxAttempts=-1):
                 robotIsReady = False
 
             if not robotIsReady:
-                log.info('Robot not ready yet, will check again in 3 seconds...', True)
+                log.info('Robot not available, will check again in 3 seconds...', True)
                 time.sleep(3)
 
         numAttempts += 1
 
     return True
+
+def currentTimeMillis():
+    return int(round(time.time() * 1000))
 
 # MAIN
 if __name__ == "__main__":
@@ -108,8 +111,19 @@ if __name__ == "__main__":
             sys.exit()
 
         vp = VisionProcessor(frameReadTimeout=0.3)
+        # Ping robot every 5 seconds to ensure it's alive
+        nextRobotCheckTime = currentTimeMillis() + 5000
+
         # loop forever
         while True:
+            if currentTimeMillis() >= nextRobotCheckTime:
+                if not waitRobot(log, 2): # Wait a maximum of 2 attempts for 3 secs on each attempt
+                    log.error("Lost communication with robot, exiting!")
+                    break
+                else:
+                    # ping robot again 5 secs from now
+                    nextRobotCheckTime = currentTimeMillis() + 5000
+
             # TODO: read the frame from the VisionCamera object instead?
             frame = vp.readCameraFrame(mainVisionCamera)
             if frame is not None:
