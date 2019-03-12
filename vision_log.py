@@ -39,7 +39,7 @@ class Log:
         # TODO
         return
 
-    def log(self, level, msg):
+    def log(self, level, msg, flush=False):
         if self.logLevelNum > level:
             return
 
@@ -49,7 +49,7 @@ class Log:
         if self.logFilename:
             self.cache.append(msg)
             self.entryCount += 1
-            if self.entryCount >= self.logFileCacheSize:
+            if flush or self.entryCount >= self.logFileCacheSize:
                 self._flushCache()
 
     def _flushCache(self):
@@ -59,17 +59,17 @@ class Log:
         file.close()
         self.entryCount = 0
 
-    def trace(self, msg):
-        self.log(Log.TRACE, msg)
+    def trace(self, msg, flush=False):
+        self.log(Log.TRACE, msg, flush)
 
-    def debug(self, msg):
-        self.log(Log.DEBUG, msg)
+    def debug(self, msg, flush=False):
+        self.log(Log.DEBUG, msg, flush)
 
-    def info(self, msg):
-        self.log(Log.INFO, msg)
+    def info(self, msg, flush=False):
+        self.log(Log.INFO, msg, flush)
     
-    def warn(self, msg):
-        self.log(Log.WARN, msg)
+    def warn(self, msg, flush=False):
+        self.log(Log.WARN, msg, flush)
 
-    def error(self, msg):
-        self.log(Log.ERROR, msg)
+    def error(self, msg, flush=False):
+        self.log(Log.ERROR, msg, flush)

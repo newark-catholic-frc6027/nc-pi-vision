@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import time
 import sys
+import socket
 
 from vision_camera import VisionCamera
 from vision_config import VisionConfig
@@ -11,6 +12,8 @@ from pprint import pprint
 from vision_log import Log
 
 MAIN_VISION_CAMERA_INDEX = 0
+ROBOT_IP = "10.60.27.2"
+ROBOT_SERVER_PORT = 6060
 
 if __name__ == "__main__":
     
@@ -32,6 +35,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
     log = Log.getInstance(visionConfig.config)
+
+    # Wait for robot to start up before we try to use network tables
+    robotWait(log)
 
     # For ouputting info to Network tables
     datahub = VisionDatahub(visionConfig.server, visionConfig.team)
@@ -78,3 +84,24 @@ if __name__ == "__main__":
 
         # TODO: Should we keep or not?    
         # time.sleep(0.0010)
+
+
+def robotWait(log):
+    robotIsReady = False
+    while not robotIsReady:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.connect((ROBOT_IP, ROBOT_SERVER_PORT))
+                s.sendall(b'vision-ping\n')
+                data = s.recv(1024)
+                log.info("data received back: " + repr(data))
+                if data and data.decode('utf-8') == 'robot-pong\n':
+                    robotIsReady = True
+            except:
+                robotIsReady = False
+
+            if not robotIsReady:
+                log.info('Robot not ready yet, will check again in 3 seconds...', True)
+                time.sleep(3)
+
+    log.info('Robot is up, vision starting...', True)
