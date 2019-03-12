@@ -38,6 +38,8 @@ if __name__ == "__main__":
 
     # Wait for robot to start up before we try to use network tables
     robotWait(log)
+    log.info('Robot is up, vision starting...', True)
+
 
     # For ouputting info to Network tables
     datahub = VisionDatahub(visionConfig.server, visionConfig.team)
@@ -86,9 +88,14 @@ if __name__ == "__main__":
         # time.sleep(0.0010)
 
 
-def robotWait(log):
+def robotWait(log, maxAttempts=-1):
     robotIsReady = False
+    numAttempts = 0
     while not robotIsReady:
+        if maxAttempts > -1 and numAttempts >= maxAttempts:
+            log.info("Maximum number of attempts ("+maxAttempts+") to check robot status reached", True)
+            return False
+
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 s.connect((ROBOT_IP, ROBOT_SERVER_PORT))
@@ -104,4 +111,6 @@ def robotWait(log):
                 log.info('Robot not ready yet, will check again in 3 seconds...', True)
                 time.sleep(3)
 
-    log.info('Robot is up, vision starting...', True)
+        numAttempts += 1
+
+    return True
