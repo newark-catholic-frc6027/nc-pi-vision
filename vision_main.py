@@ -58,9 +58,6 @@ def waitRobot(log, maxAttempts=-1):
 
     return True
 
-def currentTimeMillis():
-    return int(round(time.time() * 1000))
-
 # MAIN
 if __name__ == "__main__":
     try:
@@ -87,7 +84,9 @@ if __name__ == "__main__":
 
         # Wait for robot to start up before we try to use network tables
         waitRobot(log)
-        log.info('Robot is up, vision starting...', True)
+        log.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+        log.info('>>> Robot is up, vision starting...')
+        log.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', True)
 
 
         # For ouputting info to Network tables
@@ -112,22 +111,26 @@ if __name__ == "__main__":
 
         vp = VisionProcessor(frameReadTimeout=0.3)
         # Ping robot every 5 seconds to ensure it's alive
-        nextRobotCheckTime = currentTimeMillis() + 5000
+        currentTimeMs = log.currentTimeMillis()
+        nextRobotCheckTime = currentTimeMs + 5000
+
 
         # loop forever
         while True:
-            if currentTimeMillis() >= nextRobotCheckTime:
+            currentTimeMs = log.currentTimeMillis()
+            if currentTimeMs >= nextRobotCheckTime:
                 if not waitRobot(log, 2): # Wait a maximum of 2 attempts for 3 secs on each attempt
                     log.error("Lost communication with robot, exiting!")
                     break
                 else:
                     # ping robot again 5 secs from now
-                    nextRobotCheckTime = currentTimeMillis() + 5000
+                    nextRobotCheckTime = log.currentTimeMillis() + 5000
 
             # TODO: read the frame from the VisionCamera object instead?
             frame = vp.readCameraFrame(mainVisionCamera)
             if frame is not None:
                 gripFrame = vp.processFrame(frame)
+                vpLogMessages = vp.logMessages
                 if visionOut: visionOut.postFrame(gripFrame)
 
                 visionData = {
@@ -139,7 +142,8 @@ if __name__ == "__main__":
                     'distanceToTargetInches': vp.distanceToTargetInches
                 }
                 datahub.put(visionData)
-                log.debug("Put to datahub: {" + ', '.join(['{}:{}'.format(k,v) for k,v in sorted(visionData.items())]) + "}")
+                vpLogMessages.append((Log.DEBUG, "Put to datahub: {" + ', '.join(['{}:{}'.format(k,v) for k,v in sorted(visionData.items())]) + "}"))
+                log.logFrameInfo(vpLogMessages)
 
             else:
                 log.info("No frame to process")

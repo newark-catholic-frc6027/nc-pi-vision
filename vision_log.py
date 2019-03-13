@@ -1,4 +1,6 @@
 import datetime
+import time
+
 class Log:
     TRACE = 0
     DEBUG = 1
@@ -29,15 +31,42 @@ class Log:
             self.logFilename = config['Logging']['LogFilename']
         except KeyError:
             self.logFilename = None
-            
+
+        try: 
+            self.frameInfoLogFreqMs = int(config['Logging']['FrameInfoLogFrequency']) 
+        except: 
+            self.frameInfoLogFreqMs = 0
+
+        self.nextFrameInfoLogTime = -1
+        self.nextImageLogTime = -1
+
+        try: 
+            self.frameImageLogFreqMs = int(config['Logging']['FrameImageLogFrequency']) 
+        except: 
+            self.frameImageLogFreqMs = 0
+
         self.logImageDir = config['Logging']['LogImageDir']
         self.entryCount = 0
         self.cache = []
 
+    def currentTimeMillis(self):
+        return int(round(time.time() * 1000))
 
     def logFrame(self, frame, filenamePrefix, filenameSuffix):
         # TODO
         return
+
+    def logFrameInfo(self, msgTupleList):
+        if self.frameInfoLogFreqMs <= 0:
+            return
+
+        currentTimeMs = self.currentTimeMillis()
+
+        if currentTimeMs >= self.nextFrameInfoLogTime:
+            for msgTuple in msgTupleList:
+                self.log(msgTuple[0], msgTuple[1])
+                
+            self.nextFrameInfoLogTime = currentTimeMs + self.frameInfoLogFreqMs
 
     def log(self, level, msg, flush=False):
         if self.logLevelNum > level:
