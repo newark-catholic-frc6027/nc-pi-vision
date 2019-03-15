@@ -1,5 +1,7 @@
 import datetime
 import time
+import os
+import sys
 
 class Log:
     TRACE = 0
@@ -45,16 +47,79 @@ class Log:
         except: 
             self.frameImageLogFreqMs = 0
 
-        self.logImageDir = config['Logging']['LogImageDir']
+        try:
+            self.logImageRootDir = config['Logging']['LogImageDir']
+        except:
+            self.logImageRootDir = None
+
+        self.logImageSubdir = None
+        self.nextImageIndex = 0
+        if self.logImageRootDir:
+            self.ensureLogImageSubDir()
+            
         self.entryCount = 0
         self.cache = []
+
+    def ensureLogImageSubDir(self):
+        try:
+            if not os.path.exists(self.logImageRootDir):
+                os.makedirs(self.logImageRootDir)
+        except:
+            print("Failed to create logImageRootDir. Reason: " + sys.exc_info()[0])
+            self.logImageRootDir = None
+            return
+        
+        # Calculate next subdir to use
+        subdirList = next(os.walk(self.logImageRootDir))[1]
+        if not subdirList or len(subdirList) == 0:
+            subdirList = ['000']
+
+        subdirList.sort()
+        lastSubdir = self.logImageRootDir + '/' + subdirList[-1]
+        createSubdir = None
+        # Check if last dir exists and is empty.  if so, use that dir
+        if os.path.exists(lastSubdir):
+            if not os.listdir(lastSubdir):
+                self.logImageSubdir = lastSubdir
+                return
+            else:
+                # Create subdir with lastdir seq num + 1
+                createSubdir = self.logImageRootDir + '/' + '{:>03d}'.format((int(subdirList[-1]) + 1))
+        else:
+            createSubdir = lastSubdir
+        #end if
+        
+        if createSubdir:
+            try:
+                os.mkdir(createSubdir)
+                self.logImageSubdir = createSubdir
+                print("Created new image log subdir at '" + self.logImageSubdir + "'")
+            except:
+                print("Failed to create logImageSubdir at '" + createSubdir + "'. Reason: " + sys.exc_info()[0])
+                self.logImageSubdir = None
+
 
     def currentTimeMillis(self):
         return int(round(time.time() * 1000))
 
-    def logFrame(self, frame, filenamePrefix, filenameSuffix):
-        # TODO
-        return
+    def logFrame(self, frame, writeFunc):
+        if not self.logImageRootDir or not self.logImageSubdir or self.frameImageLogFreqMs <= 0:
+            return
+
+        currentTimeMs = self.currentTimeMillis()
+
+        if currentTimeMs >= self.nextImageLogTime:
+            nextImageFilename = '?'
+            try:
+                nextImageFilename = self.logImageSubdir + '/image' + '{:>03d}'.format(self.nextImageIndex) + '.jpg'
+                # calculate next image image name
+                writeFunc(frame, nextImageFilename)
+                self.debug("Image written to '" + nextImageFilename + "'")
+            except:
+                self.error("Failed to write image at '" + nextImageFilename + "'. Reason: " + sys.exc_info()[0])
+            finally:
+                self.nextImageLogTime = currentTimeMs + self.frameImageLogFreqMs
+
 
     def logFrameInfo(self, msgTupleList):
         if self.frameInfoLogFreqMs <= 0:

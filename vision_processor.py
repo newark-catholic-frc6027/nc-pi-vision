@@ -324,6 +324,10 @@ class VisionProcessor:
 
         self.distanceToTargetInches = a2 + ((a1 - a2)/(1 + pow(contourAreaAvg/x0, p)))
 
+    @staticmethod
+    def writeFrame(frame, filepath):
+        if frame and filepath:
+            cv2.imwrite(filepath, frame)
 
 class ContourInfo:
     def __init__(self, contour, centerX, centerY, area, angle, contourBox):

@@ -129,9 +129,9 @@ if __name__ == "__main__":
             # TODO: read the frame from the VisionCamera object instead?
             frame = vp.readCameraFrame(mainVisionCamera)
             if frame is not None:
-                gripFrame = vp.processFrame(frame)
+                processedFrame = vp.processFrame(frame)                    
                 vpLogMessages = vp.logMessages
-                if visionOut: visionOut.postFrame(gripFrame)
+                if visionOut: visionOut.postFrame(processedFrame)
 
                 visionData = {
                     'contoursCenterX' : vp.contoursCenterPoint['x'],
@@ -144,6 +144,7 @@ if __name__ == "__main__":
                 datahub.put(visionData)
                 vpLogMessages.append((Log.DEBUG, "Put to datahub: {" + ', '.join(['{}:{}'.format(k,v) for k,v in sorted(visionData.items())]) + "}"))
                 log.logFrameInfo(vpLogMessages)
+                log.logFrame(processedFrame, VisionProcessor.writeFrame)
 
             else:
                 log.info("No frame to process")
