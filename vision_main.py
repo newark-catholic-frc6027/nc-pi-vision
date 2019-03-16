@@ -37,7 +37,6 @@ def onExit():
 def setPiTime(piTimeString):
     global piTime
     try:
-        os.system("sudo set-timezone America/New_York")
         os.system("sudo timedatectl set-time '%s'" % piTimeString)
         piTime = piTimeString
     except:
