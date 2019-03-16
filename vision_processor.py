@@ -63,12 +63,11 @@ class VisionProcessor:
         outputFrame = self.gripPipeline.hsv_threshold_output
 
         if self.gripPipeline.find_contours_output:
-            self.logMessages.append((Log.DEBUG, "##################################################"))
-            self.logMessages.append((Log.DEBUG, "# of contours: %d" % len(self.gripPipeline.find_contours_output)))
+            self.logMessages.append((Log.TRACE, "##################################################"))
+            self.logMessages.append((Log.TRACE, "# of contours: %d" % len(self.gripPipeline.find_contours_output)))
 #            i = 0
             numContours = len(self.gripPipeline.find_contours_output)
             self.contourCount = numContours
-            self.logMessages.append((Log.DEBUG, "num of contours: %d" % self.contourCount))
 
             contourInfoList = self.generateContourInfo(frame, self.gripPipeline.find_contours_output)
             if len(contourInfoList) < VisionProcessor.MAX_CONTOUR_THRESHOLD:
@@ -81,12 +80,12 @@ class VisionProcessor:
             if len(contourInfoList) == 2:
                 self.contourAreas.append(contourInfoList[0].area)
                 self.contourAreas.append(contourInfoList[1].area)
-                self.logMessages.append((Log.DEBUG, 'area of contours: [%s]' % (', '.join(map(str, self.contourAreas)))))
+                self.logMessages.append((Log.TRACE, 'area of contours: [%s]' % (', '.join(map(str, self.contourAreas)))))
 
                 center_x = (contourInfoList[0].centerX + contourInfoList[1].centerX) / 2.0
                 center_y = (contourInfoList[0].centerY + contourInfoList[1].centerY) / 2.0
 
-                self.logMessages.append((Log.DEBUG, 'center = (' + str(center_x) + ', ' + str(center_y) + ')'))
+                self.logMessages.append((Log.TRACE, 'center = (' + str(center_x) + ', ' + str(center_y) + ')'))
                 self.contoursCenterPoint['x'] = center_x
                 self.contoursCenterPoint['y'] = center_y
 
@@ -142,13 +141,13 @@ class VisionProcessor:
             rect = cv2.minAreaRect(contour)
             box = cv2.boxPoints(rect)
             box = np.int0(box)
-            self.logMessages.append((Log.DEBUG, "----  contour %s: area = %s----" % (str(i+1), str(area))))
+            self.logMessages.append((Log.TRACE, "----  contour %s: area = %s----" % (str(i+1), str(area))))
 
             # Sort by y coords and grab points with smallest y (topPt) and next to largest y (botPt)
             sortedPts = sorted(box, key=lambda pt: pt[1])
             topPt = sortedPts[0]
             botPt = sortedPts[2]
-            self.logMessages.append((Log.DEBUG, "topPt(x,y) = %s,%s; botPt(x,y) = %s,%s" % (str(topPt[0]), str(topPt[1]), str(botPt[0]), str(botPt[1]))))
+            self.logMessages.append((Log.TRACE, "topPt(x,y) = %s,%s; botPt(x,y) = %s,%s" % (str(topPt[0]), str(topPt[1]), str(botPt[0]), str(botPt[1]))))
             slope = (topPt[1] - botPt[1])/(topPt[0] - botPt[0])
             angle = math.degrees(math.atan(slope))
 
@@ -165,7 +164,7 @@ class VisionProcessor:
         i = 0
         for c in contourInfoList:
             i += 1
-            self.logMessages.append((Log.INFO, "---- SORTED contour %s: area = %s; x = %s; angle = %s----" % (str(i), str(c.area), str(c.centerX), str(c.angle))))
+            self.logMessages.append((Log.TRACE, "---- SORTED contour %s: area = %s; x = %s; angle = %s----" % (str(i), str(c.area), str(c.centerX), str(c.angle))))
         
         return contourInfoList
 
@@ -248,7 +247,7 @@ class VisionProcessor:
                             #  0 - First contour of the pair
                             #  1 - Second contour of the pair
                             #  2 - (center X value of second contour + center X value of start contour) / 2
-                            self.logMessages.append((Log.DEBUG, "curIndex = %s, startPairContourIndex = %s, curContourInfo.angle = %s" 
+                            self.logMessages.append((Log.TRACE, "curIndex = %s, startPairContourIndex = %s, curContourInfo.angle = %s" 
                                 % (str(curIndex), str(startPairContourIndex), str(curContourInfo.angle))))
 
                             contourPairs.append((
@@ -326,7 +325,7 @@ class VisionProcessor:
 
     @staticmethod
     def writeFrame(frame, filepath):
-        if frame and filepath:
+        if frame is not None and filepath:
             cv2.imwrite(filepath, frame)
 
 class ContourInfo:

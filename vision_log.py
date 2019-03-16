@@ -115,6 +115,7 @@ class Log:
                 # calculate next image image name
                 writeFunc(frame, nextImageFilename)
                 self.debug("Image written to '" + nextImageFilename + "'")
+                self.nextImageIndex += 1
             except:
                 self.error("Failed to write image at '" + nextImageFilename + "'. Reason: " + sys.exc_info()[0])
             finally:
