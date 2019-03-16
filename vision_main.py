@@ -3,6 +3,8 @@ import time
 import sys
 import socket
 import atexit
+import ast
+import os
 
 from vision_camera import VisionCamera
 from vision_config import VisionConfig
@@ -18,6 +20,7 @@ ROBOT_IP = "10.60.27.2"
 ROBOT_SERVER_PORT = 5801
 onExitInvoked = False
 log = None
+piTime = None
 
 def onExit():
     global onExitInvoked
@@ -31,7 +34,19 @@ def onExit():
     else:
         print("Exiting vision_main")
 
+def setPiTime(piTimeString):
+    global piTime
+    try:
+        os.system("sudo set-timezone America/New_York")
+        os.system("sudo timedatectl set-time '%s'" % piTimeString)
+        piTime = piTimeString
+    except:
+        piTime = '?'
+        print('Failed to set Pi time')
+
+
 def waitRobot(log, maxAttempts=-1):
+    global piTime
     robotIsReady = False
     numAttempts = 0
     while not robotIsReady:
@@ -45,8 +60,13 @@ def waitRobot(log, maxAttempts=-1):
                 s.sendall(b'vision-ping\n')
                 data = s.recv(1024)
                 log.info("data received back: " + repr(data))
-                if data and data.decode('utf-8') == 'robot-pong\n':
-                    robotIsReady = True
+                if data:
+                    # response is a python dict, convert it to a dict object
+                    response = ast.literal_eval(data.decode('utf-8'))
+                    if response['result'] == 'robot-pong':
+                        robotIsReady = True
+                        if not piTime:  # try to set the time on the pi
+                            setPiTime(response['timestamp'])
             except:
                 robotIsReady = False
 
