@@ -35,48 +35,6 @@ def onExit():
     else:
         print("Exiting vision_main")
 
-def setPiTime(piTimeString):
-    global piTime
-    try:
-        os.system("sudo timedatectl set-time '%s'" % piTimeString)
-        piTime = piTimeString
-    except:
-        piTime = '?'
-        print('Failed to set Pi time')
-
-
-def waitRobot(log, maxAttempts=-1):
-    global piTime
-    robotIsReady = False
-    numAttempts = 0
-    while not robotIsReady:
-        if maxAttempts > -1 and numAttempts >= maxAttempts:
-            log.info("Maximum number of attempts ("+maxAttempts+") to check robot status reached", True)
-            return False
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            try:
-                s.connect((ROBOT_IP, ROBOT_SERVER_PORT))
-                s.sendall(b'vision-ping\n')
-                data = s.recv(1024)
-                log.info("data received back: " + repr(data))
-                if data:
-                    # response is a python dict, convert it to a dict object
-                    response = ast.literal_eval(data.decode('utf-8'))
-                    if response['result'] == 'robot-pong':
-                        robotIsReady = True
-                        if not piTime:  # try to set the time on the pi
-                            setPiTime(response['timestamp'])
-            except:
-                robotIsReady = False
-
-            if not robotIsReady:
-                log.info('Robot not available, will check again in 3 seconds...', True)
-                time.sleep(3)
-
-        numAttempts += 1
-
-    return True
 
 # MAIN
 if __name__ == "__main__":
@@ -104,18 +62,15 @@ if __name__ == "__main__":
 
         robotClient = VisionRobotClient(log)
         robotClient.waitRobot()
-        '''
-        # Wait for robot to start up before we try to use network tables
-        waitRobot(log)
-        '''
+
         log.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
         log.info('>>> Robot is up, vision starting...')
         log.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', True)
 
 
         # For ouputting info to Network tables
-#        datahub = VisionDatahub(visionConfig.server, visionConfig.team)
-#        datahub.start()
+        datahub = VisionDatahub(visionConfig.server, visionConfig.team)
+        datahub.start()
 
         mainVisionCamera = VisionCamera.getMainVisionCamera(visionConfig)
         visionOut = None
@@ -143,7 +98,7 @@ if __name__ == "__main__":
         while True:
             currentTimeMs = log.currentTimeMillis()
             if currentTimeMs >= nextRobotCheckTime:
-                if not waitRobot(log, 2): # Wait a maximum of 2 attempts for 3 secs on each attempt
+                if not robotClient.waitRobot(2): # Wait a maximum of 2 attempts for 3 secs on each attempt
                     log.error("Lost communication with robot, exiting!")
                     break
                 else:
@@ -165,9 +120,13 @@ if __name__ == "__main__":
                     'contourAreaRight': vp.contourAreas[1] if len(vp.contourAreas) > 1 else -1,
                     'distanceToTargetInches': vp.distanceToTargetInches
                 }
-#                datahub.put(visionData)
-                robotClient.sendToRobot("vision-data;"+';'.join(['{}={}'.format(k,v) for k,v in sorted(visionData.items())]))
-                vpLogMessages.append((Log.DEBUG, "Put to robot: {" + ', '.join(['{}:{}'.format(k,v) for k,v in sorted(visionData.items())]) + "}"))
+
+#                timeStart = log.currentTimeMillis()
+                datahub.put(visionData)
+#                robotClient.sendToRobot("vision-data;"+';'.join(['{}={}'.format(k,v) for k,v in sorted(visionData.items())]))
+#                timeEnd = log.currentTimeMillis()
+#                log.info("send time: " + str(timeEnd-timeStart))
+                vpLogMessages.append((Log.TRACE, "Put to robot: {" + ', '.join(['{}:{}'.format(k,v) for k,v in sorted(visionData.items())]) + "}"))
                 log.logFrameInfo(vpLogMessages)
                 log.logFrame(processedFrame, VisionProcessor.writeFrame)
 
