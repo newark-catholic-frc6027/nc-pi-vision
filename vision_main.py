@@ -11,6 +11,7 @@ from vision_config import VisionConfig
 from vision_processor import VisionProcessor
 from vision_output_server import VisionOutputServer
 from vision_datahub import VisionDatahub
+from vision_robot_client import VisionRobotClient
 from pprint import pprint
 from vision_log import Log
 
@@ -101,16 +102,20 @@ if __name__ == "__main__":
 
         log = Log.getInstance(visionConfig.config)
 
+        robotClient = VisionRobotClient(log)
+        robotClient.waitRobot()
+        '''
         # Wait for robot to start up before we try to use network tables
         waitRobot(log)
+        '''
         log.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
         log.info('>>> Robot is up, vision starting...')
         log.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', True)
 
 
         # For ouputting info to Network tables
-        datahub = VisionDatahub(visionConfig.server, visionConfig.team)
-        datahub.start()
+#        datahub = VisionDatahub(visionConfig.server, visionConfig.team)
+#        datahub.start()
 
         mainVisionCamera = VisionCamera.getMainVisionCamera(visionConfig)
         visionOut = None
@@ -160,8 +165,9 @@ if __name__ == "__main__":
                     'contourAreaRight': vp.contourAreas[1] if len(vp.contourAreas) > 1 else -1,
                     'distanceToTargetInches': vp.distanceToTargetInches
                 }
-                datahub.put(visionData)
-                vpLogMessages.append((Log.DEBUG, "Put to datahub: {" + ', '.join(['{}:{}'.format(k,v) for k,v in sorted(visionData.items())]) + "}"))
+#                datahub.put(visionData)
+                robotClient.sendToRobot("vision-data;"+';'.join(['{}={}'.format(k,v) for k,v in sorted(visionData.items())]))
+                vpLogMessages.append((Log.DEBUG, "Put to robot: {" + ', '.join(['{}:{}'.format(k,v) for k,v in sorted(visionData.items())]) + "}"))
                 log.logFrameInfo(vpLogMessages)
                 log.logFrame(processedFrame, VisionProcessor.writeFrame)
 
