@@ -42,7 +42,7 @@ class VisionRobotClient:
         numAttempts = 0
         while not robotIsReady:
             if maxAttempts > -1 and numAttempts >= maxAttempts:
-                self.log.info("Maximum number of attempts ("+maxAttempts+") to check robot status reached", True)
+                self.log.info("Maximum number of attempts ("+str(maxAttempts)+") to check robot status reached", True)
                 return False
 
             try:
