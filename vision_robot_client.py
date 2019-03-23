@@ -16,18 +16,22 @@ class VisionRobotClient:
 
     def sendToRobot(self, data):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((VisionRobotClient.ROBOT_IP, VisionRobotClient.ROBOT_SERVER_PORT))
-            self.log.trace("sending data: " + repr(data))
-            reqData = "%s\n" % data
-            s.sendall(reqData.encode())
-            respData = s.recv(1024)
-            self.log.trace("data received back: " + repr(respData))
-            if respData:
-                # response is a python dict, convert it to a dict object
-                response = ast.literal_eval(respData.decode('utf-8'))
-                return response
-            else:
-                return {}
+            try:
+                s.connect((VisionRobotClient.ROBOT_IP, VisionRobotClient.ROBOT_SERVER_PORT))
+#                self.log.trace("sending data: " + repr(data))
+                reqData = "%s\n" % data
+                s.sendall(reqData.encode())
+                respData = s.recv(1024)
+#                self.log.trace("data received back: " + repr(respData))
+                if respData:
+                    # response is a python dict, convert it to a dict object
+                    response = ast.literal_eval(respData.decode('utf-8'))
+                    return response
+                else:
+                    return {}
+            finally:
+                s.shutdown(socket.SHUT_RDWR)
+                s.close()        
 
     def setPiTime(self, piTimeString):
         try:

@@ -69,8 +69,9 @@ if __name__ == "__main__":
 
 
         # For ouputting info to Network tables
-        datahub = VisionDatahub(visionConfig.server, visionConfig.team)
-        datahub.start()
+        # Commenting out in order to use sockets instead
+        # datahub = VisionDatahub(visionConfig.server, visionConfig.team)
+        # datahub.start()
 
         mainVisionCamera = VisionCamera.getMainVisionCamera(visionConfig)
         visionOut = None
@@ -93,7 +94,7 @@ if __name__ == "__main__":
         currentTimeMs = log.currentTimeMillis()
         nextRobotCheckTime = currentTimeMs + 5000
 
-
+        visionDataStr = ''
         # loop forever
         while True:
             currentTimeMs = log.currentTimeMillis()
@@ -122,11 +123,12 @@ if __name__ == "__main__":
                 }
 
 #                timeStart = log.currentTimeMillis()
-                datahub.put(visionData)
-#                robotClient.sendToRobot("vision-data;"+';'.join(['{}={}'.format(k,v) for k,v in sorted(visionData.items())]))
+#                datahub.put(visionData)
+                visionDataStr = ';'.join(['{}={}'.format(k,v) for k,v in sorted(visionData.items())])
+                robotClient.sendToRobot("vision-data;"+visionDataStr)
 #                timeEnd = log.currentTimeMillis()
 #                log.info("send time: " + str(timeEnd-timeStart))
-                vpLogMessages.append((Log.TRACE, "Put to robot: {" + ', '.join(['{}:{}'.format(k,v) for k,v in sorted(visionData.items())]) + "}"))
+                vpLogMessages.append((Log.TRACE, "Put to robot: {" + visionDataStr + "}"))
                 log.logFrameInfo(vpLogMessages)
                 log.logFrame(processedFrame, VisionProcessor.writeFrame)
 
