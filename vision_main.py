@@ -17,8 +17,6 @@ from vision_log import Log
 
 # GLOBALS
 MAIN_VISION_CAMERA_INDEX = 0
-ROBOT_IP = "10.60.27.2"
-ROBOT_SERVER_PORT = 5801
 onExitInvoked = False
 log = None
 piTime = None
