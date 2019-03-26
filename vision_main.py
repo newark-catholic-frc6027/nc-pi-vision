@@ -14,24 +14,24 @@ from vision_datahub import VisionDatahub
 from vision_robot_client import VisionRobotClient
 from pprint import pprint
 from vision_log import Log
-from vision_status import VisionStatus
+#from vision_status import VisionStatus
 
 # GLOBALS
 MAIN_VISION_CAMERA_INDEX = 0
 onExitInvoked = False
 log = None
 piTime = None
-visionStatus = VisionStatus()
+#visionStatus = VisionStatus()
 
 def onExit():
     global onExitInvoked
     global log
-    global visionStatus
+#    global visionStatus
 
     if onExitInvoked:
         return
 
-    visionStatus.clearAllStatus()
+#    visionStatus.clearAllStatus()
 
     onExitInvoked = True
     if log:
@@ -44,7 +44,7 @@ def onExit():
 if __name__ == "__main__":
     try:
         atexit.register(onExit)
-        visionStatus.setVisionUp(True)
+#        visionStatus.setVisionUp(True)
 
         configFile = None
         outputServerPort = None
@@ -66,7 +66,8 @@ if __name__ == "__main__":
 
         log = Log.getInstance(visionConfig.config)
 
-        robotClient = VisionRobotClient(log, visionStatus)
+#        robotClient = VisionRobotClient(log, visionStatus)
+        robotClient = VisionRobotClient(log)
         robotClient.waitRobot()
         log.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
         log.info('>>> Robot is up, vision starting...')
