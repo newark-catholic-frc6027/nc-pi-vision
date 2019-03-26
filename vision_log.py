@@ -65,7 +65,7 @@ class Log:
             if not os.path.exists(self.logImageRootDir):
                 os.makedirs(self.logImageRootDir)
         except:
-            print("Failed to create logImageRootDir. Reason: " + sys.exc_info()[0])
+            print("Failed to create logImageRootDir. Reason: " + str(sys.exc_info()[0]))
             self.logImageRootDir = None
             return
         
@@ -95,7 +95,7 @@ class Log:
                 self.logImageSubdir = createSubdir
                 print("Created new image log subdir at '" + self.logImageSubdir + "'")
             except:
-                print("Failed to create logImageSubdir at '" + createSubdir + "'. Reason: " + sys.exc_info()[0])
+                print("Failed to create logImageSubdir at '" + createSubdir + "'. Reason: " + str(sys.exc_info()[0]))
                 self.logImageSubdir = None
 
 
@@ -117,7 +117,7 @@ class Log:
                 self.debug("Image written to '" + nextImageFilename + "'")
                 self.nextImageIndex += 1
             except:
-                self.error("Failed to write image at '" + nextImageFilename + "'. Reason: " + sys.exc_info()[0])
+                self.error("Failed to write image at '" + nextImageFilename + "'. Reason: " + str(sys.exc_info()[0]))
             finally:
                 self.nextImageLogTime = currentTimeMs + self.frameImageLogFreqMs
 
@@ -138,14 +138,18 @@ class Log:
         if self.logLevelNum > level:
             return
 
-        timestamp = datetime.datetime.now().strftime("%m-%d %H.%M.%S.%f")[:-3]
-        msg = "{} [{}] - {}".format(timestamp, Log.LOG_LEVEL_NAMES[level], msg)
-        print(msg)
-        if self.logFilename:
-            self.cache.append(msg)
-            self.entryCount += 1
-            if flush or self.entryCount >= self.logFileCacheSize:
-                self._flushCache()
+        try:
+            timestamp = datetime.datetime.now().strftime("%m-%d %H.%M.%S.%f")[:-3]
+            msg = "{} [{}] - {}".format(timestamp, Log.LOG_LEVEL_NAMES[level], msg)
+            print(msg)
+            if self.logFilename:
+                self.cache.append(msg)
+                self.entryCount += 1
+                if flush or self.entryCount >= self.logFileCacheSize:
+                    self._flushCache()
+        except:
+            print("Failed to log a message, printing instead => " + msg)
+
 
     def trace(self, msg, flush=False):
         self.log(Log.TRACE, msg, flush)

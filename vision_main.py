@@ -134,9 +134,9 @@ if __name__ == "__main__":
                 log.info("No frame to process")
     except:  # catch any error
         if log:
-            log.error("Unexpected error: "+ sys.exc_info()[0])
+            log.error("Unexpected error: "+ str(sys.exc_info()[0]))
         else:
-            print("Unexpected error: "+ sys.exc_info()[0])
+            print("Unexpected error: "+ str(sys.exc_info()[0]))
 
         raise   # rethrow the error
     finally:
