@@ -1,5 +1,4 @@
 import socket
-#import atexit
 import ast
 import os
 import time
@@ -10,9 +9,10 @@ class VisionRobotClient:
     ROBOT_IP = "10.60.27.2"
     ROBOT_SERVER_PORT = 5801
 
-    def __init__(self, log):
+    def __init__(self, log, visionStatus=None):
         self.log = log
         self.piTime = None
+        self.visionStatus = visionStatus
 
     def sendToRobot(self, data):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -41,11 +41,16 @@ class VisionRobotClient:
             self.piTime = '?'
             self.log.warn('Failed to set Pi time')
 
+    def _updateStatus(self, status):
+        if self.visionStatus:
+            self.visionStatus.setRobotAlive(status)
+
     def waitRobot(self, maxAttempts=-1):
         robotIsReady = False
         numAttempts = 0
         while not robotIsReady:
             if maxAttempts > -1 and numAttempts >= maxAttempts:
+                self._updateStatus(False)
                 self.log.info("Maximum number of attempts ("+str(maxAttempts)+") to check robot status reached", True)
                 return False
 
@@ -53,10 +58,12 @@ class VisionRobotClient:
                 response = self.sendToRobot('vision-ping')
                 if response['result'] == 'robot-pong':
                     robotIsReady = True
+                    self._updateStatus(robotIsReady)
                     if not self.piTime:  # try to set the time on the pi
                         self.setPiTime(response['timestamp'])
             except:
                 robotIsReady = False
+                self._updateStatus(robotIsReady)
 
                 if not robotIsReady:
                     self.log.info('Robot not available, will check again in 3 seconds...', True)
