@@ -62,14 +62,17 @@ class VisionProcessor:
 
         outputFrame = self.gripPipeline.hsv_threshold_output
 
-        if self.gripPipeline.find_contours_output:
+#        if self.gripPipeline.find_contours_output:
+        if self.gripPipeline.filter_contours_output:
             self.logMessages.append((Log.TRACE, "##################################################"))
-            self.logMessages.append((Log.TRACE, "# of contours: %d" % len(self.gripPipeline.find_contours_output)))
-#            i = 0
-            numContours = len(self.gripPipeline.find_contours_output)
+#            self.logMessages.append((Log.TRACE, "# of contours: %d" % len(self.gripPipeline.find_contours_output)))
+            self.logMessages.append((Log.TRACE, "# of contours: %d" % len(self.gripPipeline.filter_contours_output)))
+#            numContours = len(self.gripPipeline.find_contours_output)
+            numContours = len(self.gripPipeline.filter_contours_output)
             self.contourCount = numContours
 
-            contourInfoList = self.generateContourInfo(frame, self.gripPipeline.find_contours_output)
+#            contourInfoList = self.generateContourInfo(frame, self.gripPipeline.find_contours_output)
+            contourInfoList = self.generateContourInfo(frame, self.gripPipeline.filter_contours_output)
             if len(contourInfoList) < VisionProcessor.MAX_CONTOUR_THRESHOLD:
                 contourInfoList = self.findBestContours(frame, contourInfoList)
             else:
