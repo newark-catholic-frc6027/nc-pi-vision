@@ -1,0 +1,6 @@
+#!/bin/sh
+### TYPE: builtin
+echo "Waiting 5 seconds..."
+sleep 5
+/home/pi/vision_main.py -oport next &
+exec /usr/local/frc/bin/multiCameraServer
