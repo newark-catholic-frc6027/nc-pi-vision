@@ -16,7 +16,7 @@ The ampersand at the end puts the process in the background and allows the next 
 - Mount the drive to `/mnt/usbdrv` using `sudo mkdir /mnt/usbdrv`
 - Add this line to `/etc/fstab`
 ```
-UUID=8832-D06B /mnt/usbdrv vfat defaults,auto,users,rw,nofail,x-systemd.device-timeout=15 0 0
+UUID=8832-D06B /mnt/usbdrv vfat defaults,auto,users,rw,nofail,umask=000,x-systemd.device-timeout=15 0 0
 ```
 - The UUID is obtained from this command `sudo blkid`. 
 - Create symbolic link to `/mnt/usbdrv` in `/home/pi`:

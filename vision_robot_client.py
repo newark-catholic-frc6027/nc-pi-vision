@@ -17,6 +17,7 @@ class VisionRobotClient:
     def sendToRobot(self, data):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
+                s.settimeout(1)
                 s.connect((VisionRobotClient.ROBOT_IP, VisionRobotClient.ROBOT_SERVER_PORT))
 #                self.log.trace("sending data: " + repr(data))
                 reqData = "%s\n" % data
